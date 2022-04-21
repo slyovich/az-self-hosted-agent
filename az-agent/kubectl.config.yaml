@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Config
+clusters:
+- name: mycluster
+  cluster:
+    server: "#{server-url}#"
+
+users:
+- name: "myuser"
+  user:
+    token: "#{user-token}#"
+
+contexts:
+- name: "mycontext"
+  context:
+    user: "myuser"
+    cluster: "mycluster"
