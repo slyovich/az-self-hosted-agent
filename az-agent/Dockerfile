@@ -1,5 +1,5 @@
 FROM ubuntu:20.04
-# When upgrading the ubuntu image, don't forget to upgrade Powershell package version
+ENV UbuntuImage=20.04
 
 # To make it easier for build and release pipelines to run apt-get,
 # configure apt to not require confirmation (assume the -y argument by default)
@@ -30,7 +30,7 @@ RUN curl -LsS https://aka.ms/InstallAzureCLIDeb | bash \
 
 # Install Powershell Core
 # Download the Microsoft repository GPG keys
-RUN wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+RUN wget -q https://packages.microsoft.com/config/ubuntu/${UbuntuImage}/packages-microsoft-prod.deb
 # Register the Microsoft repository GPG keys
 RUN dpkg -i packages-microsoft-prod.deb
 # Update the list of packages after we added packages.microsoft.com
@@ -42,10 +42,20 @@ RUN apt-get install -y powershell
 RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 \
     && chmod +x get_helm.sh && ./get_helm.sh
 
-# Install Kubectl
+# Install latest Kubectl
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 RUN chmod +x ./kubectl
 RUN mv ./kubectl /usr/local/bin/kubectl
+
+# Install latest Terraform
+RUN terraformLatest=$(curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r -M '.current_version') \
+    && wget https://releases.hashicorp.com/terraform/${terraformLatest}/terraform_${terraformLatest}_linux_amd64.zip \
+    && unzip terraform_${terraformLatest}_linux_amd64.zip
+
+# Move to local bin
+RUN mv terraform /usr/local/bin/
+# Check that it's installed
+RUN terraform --version
 
 # Can be 'linux-x64', 'linux-arm64', 'linux-arm', 'rhel.6-x64'.
 ENV TARGETARCH=linux-x64
