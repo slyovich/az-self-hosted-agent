@@ -68,4 +68,8 @@ WORKDIR /azp
 COPY ./start.sh .
 RUN chmod +x start.sh
 
+# Create a non-root user and execute the container as this non-root user
+RUN useradd ado-agent && chown -R ado-agent /azp
+USER ado-agent:ado-agent
+
 ENTRYPOINT ["./start.sh"]
