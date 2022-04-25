@@ -25,12 +25,9 @@ $appPrincipalId = $(az webapp identity assign --name $appName --resource-group $
 az webapp update --name $appName --resource-group $resourceGroupName --https-only
 az webapp config set --name $appName --resource-group $resourceGroupName --always-on $true --ftps-state Disabled
 
-# Just keep time so that the identity can be correctly replicated in Azure AD
-Start-Sleep -s 60
-
 # Add roles
-az role assignment create --assignee $appPrincipalId --scope $keyVaultId --role "Key Vault Secrets User"
-az role assignment create --assignee $appPrincipalId --scope $acrId --role "AcrPull"
+az role assignment create --assignee-object-id $appPrincipalId --assignee-principal-type ServicePrincipal --scope $keyVaultId --role "Key Vault Secrets User"
+az role assignment create --assignee-object-id $appPrincipalId --assignee-principal-type ServicePrincipal --scope $acrId --role "AcrPull"
 
 # Setup vnet integration
 az webapp vnet-integration add --name $appName --resource-group $resourceGroupName --vnet $vnetName --subnet "AppSrvSubNet"
