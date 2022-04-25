@@ -14,7 +14,8 @@ param(
 
 # Add private App Service used as DevOps self-hosted agent
 # Create App Service Plan
-az appservice plan create --name $appServicePlanName --resource-group $resourceGroupName --sku "P1V2" --location $location --is-linux --tags $commonTags "context=devops-self-hosted-agent"
+$sku = "B1"         # Basic SKU supports both vnet integration and private endpoint
+az appservice plan create --name $appServicePlanName --resource-group $resourceGroupName --sku $sku --location $location --is-linux --tags $commonTags "context=devops-self-hosted-agent"
 
 # Create Web App Azure self-hosted agent
 $appId = $(az webapp create --name $appName --resource-group $resourceGroupName `
