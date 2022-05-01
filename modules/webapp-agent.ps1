@@ -24,7 +24,7 @@ $appId = $(az webapp create --name $appName --resource-group $resourceGroupName 
 $appPrincipalId = $(az webapp identity assign --name $appName --resource-group $resourceGroupName --output tsv --query principalId)
 
 az webapp update --name $appName --resource-group $resourceGroupName --https-only
-az webapp config set --name $appName --resource-group $resourceGroupName --always-on $true --ftps-state Disabled
+az webapp config set --name $appName --resource-group $resourceGroupName --always-on $true --ftps-state Disabled --vnet-route-all-enabled $true
 
 # Add roles
 az role assignment create --assignee-object-id $appPrincipalId --assignee-principal-type ServicePrincipal --scope $keyVaultId --role "Key Vault Secrets User"
@@ -34,8 +34,6 @@ az role assignment create --assignee-object-id $appPrincipalId --assignee-princi
 az webapp vnet-integration add --name $appName --resource-group $resourceGroupName --vnet $vnetName --subnet "AppSrvSubNet"
 
 # Add settings
-az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings WEBSITE_VNET_ROUTE_ALL=1
-az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings WEBSITE_DNS_SERVER=168.63.129.16
 az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings AZP_POOL=$AZP_POOL
 az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings AZP_AGENT_NAME=$AZP_AGENT_NAME
 az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings AZP_URL=$AZP_URL
