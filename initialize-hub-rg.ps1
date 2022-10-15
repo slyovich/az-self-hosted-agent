@@ -15,14 +15,17 @@ param(
     [string]$vnetName,
     [string]$vnetAddresses,
     [string]$privateEndpointSubnetAddresses,
-    [string]$appSrvSubnetAddresses,
+    [string]$selfHostedSubnetAddresses,
     [string]$nsgName,
     [string]$appServicePlanName,
     [string]$appName,
+    [string]$containerAppEnvironmentName,
+    [string]$containerAppName,
     [string]$AZP_POOL,
     [string]$AZP_AGENT_NAME,
     [string]$AZP_URL,
     [string]$AZP_TOKEN,
+    [switch]$appServiceSelftHostedAgent,
     [System.Collections.ArrayList]$additionalDnsZones   #Additional DNS Zones needed, except "privatelink.vaultcore.azure.net" and "privatelink.azurewebsites.net"
 )
 
@@ -41,6 +44,8 @@ az group create --name $resourceGroupName --location $location --tags $commonTag
 
 # Create log analytics workspace
 az monitor log-analytics workspace create --workspace-name $logAnalyticsWorkspaceName --resource-group $resourceGroupName --location $location --tags $commonTags
+$logAnalyticsWorkspaceCustomerId = $(az monitor log-analytics workspace show --workspace-name $logAnalyticsWorkspaceName --resource-group $resourceGroupName --query "customerId" --output tsv)
+$logAnalyticsWorkspaceKey = $(az monitor log-analytics workspace get-shared-keys --workspace-name $logAnalyticsWorkspaceName --resource-group $resourceGroupName --query "primarySharedKey" --output tsv)
 
 # Create Terraform backend storage
 & "$($sciptFolder)\modules\tfstorage.ps1" `
@@ -60,26 +65,39 @@ az monitor log-analytics workspace create --workspace-name $logAnalyticsWorkspac
 & "$($sciptFolder)\modules\network.ps1" `
     -resourceGroupName $resourceGroupName -location $location `
     -vnetName $vnetName -vnetAddresses $vnetAddresses `
-    -privateEndpointSubnetAddresses $privateEndpointSubnetAddresses -appSrvSubnetAddresses $appSrvSubnetAddresses `
+    -privateEndpointSubnetAddresses $privateEndpointSubnetAddresses -selfHostedSubnetAddresses $selfHostedSubnetAddresses `
     -nsgName $nsgName `
+    -appServiceSelftHostedAgent $appServiceSelftHostedAgent `
     -commonTags $commonTags
 
-# Create Key Vault
-& "$($sciptFolder)\modules\keyvault.ps1" `
-    -resourceGroupName $resourceGroupName -location $location `
-    -keyVaultName $keyVaultName -logAnalyticsWorkspaceName $logAnalyticsWorkspaceName `
-    -vnetName $vnetName `
-    -currentUserId $currentUserId `
-    -AZP_TOKEN $AZP_TOKEN `
-    -commonTags $commonTags
+$selfHostedSubNetId=$(az network vnet subnet show --resource-group $resourceGroupName --vnet-name $vnetName --name "SelfHostedSubNet" --query "id" --output tsv)
 
-# Create Web App for containers self-hosted agent
-& "$($sciptFolder)\modules\webapp-agent.ps1" `
-    -resourceGroupName $resourceGroupName -location $location `
-    -keyVaultName $keyVaultName -acrName $acrName -vnetName $vnetName `
-    -appServicePlanName $appServicePlanName -appName $appName `
-    -AZP_POOL $AZP_POOL -AZP_AGENT_NAME $AZP_AGENT_NAME -AZP_URL $AZP_URL `
-    -commonTags $commonTags
+if ($appServiceSelftHostedAgent) {
+    # Create Key Vault
+    & "$($sciptFolder)\modules\keyvault.ps1" `
+        -resourceGroupName $resourceGroupName -location $location `
+        -keyVaultName $keyVaultName -logAnalyticsWorkspaceName $logAnalyticsWorkspaceName `
+        -vnetName $vnetName `
+        -currentUserId $currentUserId `
+        -AZP_TOKEN $AZP_TOKEN `
+        -commonTags $commonTags
+
+    # Create Web App for containers self-hosted agent
+    & "$($sciptFolder)\modules\webapp-agent.ps1" `
+        -resourceGroupName $resourceGroupName -location $location `
+        -keyVaultName $keyVaultName -acrName $acrName -vnetName $vnetName `
+        -appServicePlanName $appServicePlanName -appName $appName `
+        -AZP_POOL $AZP_POOL -AZP_AGENT_NAME $AZP_AGENT_NAME -AZP_URL $AZP_URL `
+        -commonTags $commonTags
+} else {
+    $ "$(scriptFolder)\modules\containerapp-agent.ps1" `
+        -resourceGroupName $resourceGroupName -location $location `
+        -keyVaultName $keyVaultName -acrName $acrName -selfHostedSubNetId $selfHostedSubNetId `
+        -containerAppEnvironmentName $containerAppEnvironmentName -containerAppName $containerAppName `
+        -logAnalyticsWorkspaceCustomerId $logAnalyticsWorkspaceCustomerId -logAnalyticsWorkspaceKey $logAnalyticsWorkspaceKey `
+        -AZP_POOL $AZP_POOL -AZP_AGENT_NAME $AZP_AGENT_NAME -AZP_URL $AZP_URL -AZP_TOKEN $AZP_TOKEN `
+        -commonTags $commonTags
+}
 
 # Add additional DNS Zones
 foreach ($dnsZone in $additionalDnsZones) {

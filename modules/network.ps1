@@ -4,8 +4,9 @@ param(
     [string]$vnetName,
     [string]$vnetAddresses,
     [string]$privateEndpointSubnetAddresses,
-    [string]$appSrvSubnetAddresses,
+    [string]$selfHostedSubnetAddresses,
     [string]$nsgName,
+    [switch]$appServiceSelftHostedAgent,
     [string]$commonTags
 )
 
@@ -23,6 +24,12 @@ az network vnet subnet create --name "PrivateEndpointSubNet" --vnet-name $vnetNa
                               --disable-private-endpoint-network-policies $true --disable-private-link-service-network-policies $false
 
 # Add vnet integration subnet
-az network vnet subnet create --name "AppSrvSubNet" --vnet-name $vnetName --resource-group $resourceGroupName `
-                              --address-prefixes $appSrvSubnetAddresses --network-security-group $nsgName --delegations "Microsoft.Web/serverFarms" `
-                              --disable-private-endpoint-network-policies $false --disable-private-link-service-network-policies $false
+if ($appServiceSelftHostedAgent) {
+    az network vnet subnet create --name "SelfHostedSubNet" --vnet-name $vnetName --resource-group $resourceGroupName `
+                                  --address-prefixes $selfHostedSubnetAddresses --network-security-group $nsgName --delegations "Microsoft.Web/serverFarms" `
+                                  --disable-private-endpoint-network-policies $false --disable-private-link-service-network-policies $false
+} else {
+    az network vnet subnet create --name "SelfHostedSubNet" --vnet-name $vnetName --resource-group $resourceGroupName `
+                                  --address-prefixes $selfHostedSubnetAddresses --network-security-group $nsgName `
+                                  --disable-private-endpoint-network-policies $false --disable-private-link-service-network-policies $false
+}

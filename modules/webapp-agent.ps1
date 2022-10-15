@@ -27,11 +27,14 @@ az webapp update --name $appName --resource-group $resourceGroupName --https-onl
 az webapp config set --name $appName --resource-group $resourceGroupName --always-on $true --ftps-state Disabled --vnet-route-all-enabled $true
 
 # Add roles
+$keyVaultId = $(az keyvault show --resource-group $resourceGroupName --name $keyVaultName --query "id" --output tsv)
+$acrId = $(az acr show --resource-group $resourceGroupName --name $acrName --query "id" --output tsv)
+
 az role assignment create --assignee-object-id $appPrincipalId --assignee-principal-type ServicePrincipal --scope $keyVaultId --role "Key Vault Secrets User"
 az role assignment create --assignee-object-id $appPrincipalId --assignee-principal-type ServicePrincipal --scope $acrId --role "AcrPull"
 
 # Setup vnet integration
-az webapp vnet-integration add --name $appName --resource-group $resourceGroupName --vnet $vnetName --subnet "AppSrvSubNet"
+az webapp vnet-integration add --name $appName --resource-group $resourceGroupName --vnet $vnetName --subnet "SelfHostedSubNet"
 
 # Add settings
 az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings AZP_POOL=$AZP_POOL

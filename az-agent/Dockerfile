@@ -8,6 +8,8 @@ RUN echo "APT::Get::Assume-Yes \"true\";" > /etc/apt/apt.conf.d/90assumeyes
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
+    apt-transport-https \
+    apt-utils \
     ca-certificates \
     curl \
     jq \
@@ -16,13 +18,17 @@ RUN apt-get update \
     libcurl4 \
     libunwind8 \
     netcat \
-    libssl1.0 \
     zip \
     unzip \
     wget \
-    apt-transport-https \
     software-properties-common \
   && rm -rf /var/lib/apt/lists/*
+
+# Workaround as explained here for Ubuntu 22.04 and libssl - https://studyraft.com/azure-devops-agent-no-usable-version-of-libssl-was-found/
+RUN wget "http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1-1ubuntu2.1~18.04.20_amd64.deb"
+RUN dpkg -i "libssl1.1_1.1.1-1ubuntu2.1~18.04.20_amd64.deb"
+RUN rm "libssl1.1_1.1.1-1ubuntu2.1~18.04.20_amd64.deb"
+RUN sed -i 's/openssl_conf = openssl_init/#openssl_conf = openssl_init/g' /etc/ssl/openssl.cnf
 
 # Install Azure CLI
 RUN curl -LsS https://aka.ms/InstallAzureCLIDeb | bash \
