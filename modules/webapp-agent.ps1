@@ -38,6 +38,8 @@ az webapp config appsettings set --name $appName --resource-group $resourceGroup
 az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings AZP_AGENT_NAME=$AZP_AGENT_NAME
 az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings AZP_URL=$AZP_URL
 az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings "AZP_TOKEN=""@Microsoft.KeyVault(VaultName=$($keyVaultName);SecretName=azp-token)"""
+az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings WEBSITES_CONTAINER_START_TIME_LIMIT=1800
+az webapp config appsettings set --name $appName --resource-group $resourceGroupName --settings WEBSITES_PORT=8000
 
 # Configure the app to use the managed identity to pull from Azure Container Registry
 az webapp config set --name $appName --resource-group $resourceGroupName --generic-configurations '{\"acrUseManagedIdentityCreds\": true}'
