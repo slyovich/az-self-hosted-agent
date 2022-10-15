@@ -92,7 +92,7 @@ if ($appServiceSelftHostedAgent) {
 } else {
     $ "$(scriptFolder)\modules\containerapp-agent.ps1" `
         -resourceGroupName $resourceGroupName -location $location `
-        -keyVaultName $keyVaultName -acrName $acrName -selfHostedSubNetId $selfHostedSubNetId `
+        -acrName $acrName -selfHostedSubNetId $selfHostedSubNetId `
         -containerAppEnvironmentName $containerAppEnvironmentName -containerAppName $containerAppName `
         -logAnalyticsWorkspaceCustomerId $logAnalyticsWorkspaceCustomerId -logAnalyticsWorkspaceKey $logAnalyticsWorkspaceKey `
         -AZP_POOL $AZP_POOL -AZP_AGENT_NAME $AZP_AGENT_NAME -AZP_URL $AZP_URL -AZP_TOKEN $AZP_TOKEN `

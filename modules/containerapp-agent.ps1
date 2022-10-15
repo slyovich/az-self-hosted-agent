@@ -1,7 +1,6 @@
 param(
     [string]$resourceGroupName,
     [string]$location,
-    [string]$keyVaultName,
     [string]$acrName,
     [string]$selfHostedSubNetId,
     [string]$containerAppEnvironmentName,
