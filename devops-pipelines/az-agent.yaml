@@ -17,6 +17,10 @@ variables:
   value: <YOUR-ACR-NAME>
 - name: WebAppName
   value: <YOUR-WEBAPP-NAME>
+- name: ContainerAppName
+  value: <YOUR-CONTAINER-APP-NAME>
+- name: ContainerAppResourceGroupName
+  value: <YOUR-CONTAINER-APP-RESOURCE-GROUP-NAME>
 - name: ImageTagName
   value: ${{ variables['Build.BuildNumber'] }}
 
@@ -80,3 +84,19 @@ stages:
               azureSubscription: <your-azure-subscription>
               appName: $(WebAppName)
               containers: '$(AcrName).azurecr.io/azagent:$(ImageTagName)'
+
+          - task: AzureCLI@2
+            displayName: Publish Agent
+            inputs:
+              azureSubscription: <your-azure-subscription>
+              scriptType: bash
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              inlineScript: |
+                #!/bin/bash
+                az config set extension.use_dynamic_install=yes_without_prompt
+
+                az containerapp update \
+                --name $(ContainerAppName) \
+                --resource-group $(ContainerAppResourceGroupName) \
+                --image $(AcrName).azurecr.io/azagent:$(ImageTagName)
