@@ -26,6 +26,18 @@ az containerapp env create `
   --logs-workspace-key $logAnalyticsWorkspaceKey `
   --tags $commonTags "context=devops-self-hosted-agent"
 
+# https://github.com/Azure/terraform-provider-azapi/issues/152
+$provisioningState = $(az containerapp env show --name $containerAppEnvironmentName --resource-group $resourceGroupName --query "properties.provisioningState" --output tsv)
+while ($provisioningState -ne "Succeeded") {
+    if ($provisioningState -eq "Failed") {
+        throw 'Container App Environment provisioning failed'
+    }
+
+    Write-Host "Provisioning state $($provisioningState). Waiting 15 sec..."
+    Start-Sleep -s 15
+    $provisioningState = $(az containerapp env show --name $containerAppEnvironmentName --resource-group $resourceGroupName --query "properties.provisioningState" --output tsv)
+}
+
 az containerapp create `
   --name $containerAppName `
   --resource-group $resourceGroupName `
