@@ -7,11 +7,11 @@ The following schemas illustrates the deployed infrastructure provided by the AZ
 
 This schema illustrates a more robust Azure architecture using Azure Container App to host the self-hosted Azure DevOps agent. This scenario enables auto-scaling of the agent and allows more resource consumption deployments.
 
-![Landing zone Container App](resources/AZ-Landing-Zone-Container%20App.drawio.png)
+![Landing zone Container App](resources/AZ-Landing-Zone-Container%20App.png)
 
 The following schema illustrates the Azure architecture using Azure Web App for Containers to host the self-hosted Azure DevOps agent. This scenario works well for small deployments, requiring less than 20 minutes each job. At the time of writing this repository, Azure App Service is available in almost all Microsoft region, which is not the case for the Azure Container App scenario. Depending on the resource location requirements, this scenario would fit better than the Container App one.
 
-![Landing zone App Service](resources/AZ-Landing-Zone-App%20Service.drawio.png)
+![Landing zone App Service](resources/AZ-Landing-Zone-App%20Service.png)
 
 The Azure DevOps self-hosted agent is built using a docker image, following the [Microsoft tutorial](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/docker?view=azure-devops).
 
